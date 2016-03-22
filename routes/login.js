@@ -12,8 +12,14 @@ module.exports = (router, models) => {
     authArr = new Buffer(authArr[1], 'base64').toString().split(':');
     let username = authArr[0];
     let password = authArr[1];
-    console.log(username);
-    console.log(password);
+
+    User.findOne({name:username}, (err, user) => {
+      if (err) return res.status(500).send('error finding username');
+      if (!user) return res.status(400).send(`user ${username} does not exist`);
+      let valid = user.compareHash(password);
+      if (!valid) return res.status(200).send('failure to login');
+      res.status(200).json({token:user.generateToken()}).end();
+    });
   });
 
 };
